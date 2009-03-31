@@ -1,4 +1,5 @@
 #include <math.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,6 +24,7 @@ static float pan_y = DEFAULT_PAN_Y;
 static float scale = DEFAULT_SCALE;
 static int slices = DEFAULT_SLICES;
 static int selected_point = -1;
+static int use_de_casteljau = 1;
 
 #define POINT_SIZE		10
 #define POINTS_NAME		1000
@@ -66,7 +68,19 @@ static void frame()
 
 static void display()
 {
+	static clock_t ticks;
+	static int nframes;
+	static clock_t now;
 	int i;
+
+	nframes++;
+	now = clock();
+	if (now - ticks >= CLOCKS_PER_SEC) {
+		printf("\r%dfps", nframes);
+		fflush(stdout);
+		ticks = now;
+		nframes = 0;
+	}
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -88,8 +102,11 @@ static void display()
 	glColor3f(0.0f, 1.0f, 0.0f);
 	glBegin(GL_LINE_STRIP);
 	for (i = 0; i <= slices; i++) {
-		struct vector2 pt;
-		bezier(&pt, points, nr_points, (float) i / slices);
+		struct vector2 pt = {};
+		if (use_de_casteljau)
+			bezier(&pt, points, nr_points, (float) i / slices);
+		else
+			bezier_bernstein(&pt, points, nr_points, (float) i / slices);
 		glVertex2f(pt.x, pt.y);
 	}
 	glEnd();
@@ -179,10 +196,19 @@ static void keyboard(unsigned char key, int x, int y)
 	case '-': case '_':
 		if (slices != 1)
 			slices >>= 1;
+		printf("Using %d slices\n", slices);
 		break;
 	case '=': case '+':
 		if (slices < (1 << 15))
 			slices <<= 1;
+		printf("Using %d slices\n", slices);
+		break;
+	case 'c':
+		use_de_casteljau = !use_de_casteljau;
+		if (use_de_casteljau)
+			printf("Switched to de Casteljau's algorithm\n");
+		else
+			printf("Switched to Bernstein polynomials\n");
 		break;
 	}
 }
