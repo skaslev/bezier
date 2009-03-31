@@ -93,7 +93,6 @@ static void display()
 	now = clock();
 	if (now - ticks >= CLOCKS_PER_SEC) {
 		fps = nr_frames;
-		fflush(stdout);
 		ticks = now;
 		nr_frames = 0;
 	}
@@ -141,7 +140,7 @@ static void display()
 
 	draw_frame();
 
-	/* Render fps */
+	/* Render fps counter */
 	glPushMatrix();
 	glLoadIdentity();
 	glColor3f(1.0, 1.0f, 1.0f);
