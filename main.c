@@ -15,7 +15,7 @@
 #define DEFAULT_PAN_X		0.5f
 #define DEFAULT_PAN_Y		0.5f
 #define DEFAULT_SCALE		0.25f
-#define DEFAULT_SLICES		(1 << 10)
+#define DEFAULT_SLICES		(1 << 8)
 
 static int width = 1024, height = 1024;
 static enum { NONE, PANNING, SCALING, MOVING } cur_op = NONE;
@@ -28,7 +28,7 @@ static int selected_point = -1;
 static int use_de_casteljau = 1;
 static int render_control_polygon = 1;
 
-#define POINT_SIZE		10
+#define POINT_SIZE		5
 #define POINTS_NAME		1000
 #define MAX_POINTS		64
 
@@ -191,7 +191,7 @@ static int check_hits(int x, int y)
 	glGetDoublev(GL_PROJECTION_MATRIX, proj);
 	glGetIntegerv(GL_VIEWPORT, viewport);
 	glLoadIdentity();
-	gluPickMatrix(x, viewport[3] - y, POINT_SIZE, POINT_SIZE, viewport);
+	gluPickMatrix(x, viewport[3] - y, POINT_SIZE * 1.5f, POINT_SIZE * 1.5f, viewport);
 	glMultMatrixd(proj);
 
 	display();
@@ -236,7 +236,7 @@ static void keyboard(unsigned char key, int x, int y)
 		printf("Rendering %d slices\n", slices);
 		break;
 	case '=': case '+':
-		if (slices < (1 << 15))
+		if (slices < (1 << 11))
 			slices <<= 1;
 		printf("Rendering %d slices\n", slices);
 		break;
