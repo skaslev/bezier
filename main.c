@@ -4,6 +4,7 @@
 #include <string.h>
 #include <alloca.h>
 
+#include <GL/gl.h>
 #include <GL/glut.h>
 
 #include "vector2.h"
@@ -11,18 +12,21 @@
 
 #define DEFAULT_PAN_X		0.5f
 #define DEFAULT_PAN_Y		0.5f
-#define DEFAULT_SCALE		0.4f
+#define DEFAULT_SCALE		0.25f
+#define DEFAULT_SLICES		(1 << 10)
 
 static int width = 1024, height = 1024;
-static enum { NONE, PANNING, SCALING } cur_op = NONE;
+static enum { NONE, PANNING, SCALING, MOVING } cur_op = NONE;
 static int last_x, last_y;
-
 static float pan_x = DEFAULT_PAN_X;
 static float pan_y = DEFAULT_PAN_Y;
 static float scale = DEFAULT_SCALE;
+static int slices = DEFAULT_SLICES;
+static int selected_point = -1;
 
-#define MAX_POINTS		64
+#define POINT_SIZE		10
 #define POINTS_NAME		1000
+#define MAX_POINTS		64
 
 static struct vector2 points[MAX_POINTS];
 static int nr_points = 0;
@@ -40,6 +44,22 @@ static void bezier(struct vector2 *res, const struct vector2 *pts, int nr_pts, f
 		SWAP(struct vector2 *, last, curr);
 	}
 	*res = last[0];
+}
+
+static void unproject2(struct vector2 *res, float x, float y)
+{
+	GLdouble pt_x, pt_y, pt_z;
+	GLdouble model[16];
+	GLdouble proj[16];
+	GLint viewport[4];
+
+	glGetDoublev(GL_MODELVIEW_MATRIX, model);
+	glGetDoublev(GL_PROJECTION_MATRIX, proj);
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	gluUnProject(x, viewport[3] - y, 0.0, model, proj, viewport, &pt_x, &pt_y, &pt_z);
+
+	res->x = pt_x;
+	res->y = pt_y;
 }
 
 static void frame()
@@ -70,7 +90,7 @@ static void display()
 	glTranslatef(pan_x, pan_y, 0.0f);
 	glScalef(scale, scale, 1.0f);
 
-	glPointSize(10.0f);
+	glPointSize(POINT_SIZE);
 	for (i = 0; i < nr_points; i++) {
 		glColor3f(1.0f, 1.0f, 1.0f);
 		glPushName(POINTS_NAME + i);
@@ -80,12 +100,11 @@ static void display()
 		glPopName();
 	}
 
-#define MAX_SUBD		1500
 	glColor3f(0.0f, 1.0f, 0.0f);
 	glBegin(GL_LINE_STRIP);
-	for (i = 0; i <= MAX_SUBD; i++) {
+	for (i = 0; i <= slices; i++) {
 		struct vector2 pt;
-		bezier(&pt, points, nr_points, (float) i / MAX_SUBD);
+		bezier(&pt, points, nr_points, (float) i / slices);
 		glVertex2f(pt.x, pt.y);
 	}
 	glEnd();
@@ -116,8 +135,6 @@ static void reshape(int w, int h)
 
 static int check_hits(int x, int y)
 {
-#define X_PICK_SIZE		20 /* FIXME: This should be the same as point size */
-#define Y_PICK_SIZE		20
 	GLuint buffer[256], *ptr;
 	GLint hits;
 	GLint viewport[4];
@@ -135,7 +152,7 @@ static int check_hits(int x, int y)
 	glGetDoublev(GL_PROJECTION_MATRIX, proj);
 	glGetIntegerv(GL_VIEWPORT, viewport);
 	glLoadIdentity();
-	gluPickMatrix(x, viewport[3] - y, X_PICK_SIZE, Y_PICK_SIZE, viewport);
+	gluPickMatrix(x, viewport[3] - y, POINT_SIZE, POINT_SIZE, viewport);
 	glMultMatrixd(proj);
 
 	display();
@@ -172,6 +189,15 @@ static void keyboard(unsigned char key, int x, int y)
 		pan_x = DEFAULT_PAN_X;
 		pan_y = DEFAULT_PAN_Y;
 		scale = DEFAULT_SCALE;
+		slices = DEFAULT_SLICES;
+		break;
+	case '-': case '_':
+		if (slices != 1)
+			slices >>= 1;
+		break;
+	case '=': case '+':
+		if (slices < (1 << 15))
+			slices <<= 1;
 		break;
 	}
 }
@@ -179,42 +205,30 @@ static void keyboard(unsigned char key, int x, int y)
 static void mouse(int button, int state, int x, int y)
 {
 	cur_op = NONE;
-	if (glutGetModifiers() & GLUT_ACTIVE_ALT) {
-		if (state == GLUT_DOWN) {
-			if (button == GLUT_LEFT_BUTTON)
-				cur_op = PANNING;
-			else if (button == GLUT_RIGHT_BUTTON)
-				cur_op = SCALING;
-		}
+	if ((glutGetModifiers() & GLUT_ACTIVE_ALT) && state == GLUT_DOWN) {
+		if (button == GLUT_LEFT_BUTTON)
+			cur_op = PANNING;
+		else if (button == GLUT_RIGHT_BUTTON)
+			cur_op = SCALING;
 	} else  if (state == GLUT_DOWN) {
 		int active_point = check_hits(x, y);
-		if (button == GLUT_LEFT_BUTTON) {
-			/* Adding points */
-			if (active_point == -1 && nr_points < MAX_POINTS) {
-				GLdouble pt_x, pt_y, pt_z;
-				GLdouble model[16];
-				GLdouble proj[16];
-				GLint viewport[4];
-
-				glGetDoublev(GL_MODELVIEW_MATRIX, model);
-				glGetDoublev(GL_PROJECTION_MATRIX, proj);
-				glGetIntegerv(GL_VIEWPORT, viewport);
-				gluUnProject(x, viewport[3] - y, 0.0, model, proj, viewport, &pt_x, &pt_y, &pt_z);
-
-				points[nr_points++] = (struct vector2) { pt_x, pt_y };
-			}
-		} else if (button == GLUT_RIGHT_BUTTON) {
-			/* Removing points */
-			if (active_point != -1 && nr_points > 0) {
-				memmove(points + active_point, points + active_point + 1,
-					sizeof(*points) * (nr_points - active_point + 1));
-				nr_points--;
-			}
+		if (button == GLUT_LEFT_BUTTON && active_point != -1) {
+			/* Moving point */
+			selected_point = active_point;
+			cur_op = MOVING;
+		} else if (button == GLUT_MIDDLE_BUTTON && active_point == -1 && nr_points < MAX_POINTS) {
+			/* Add point */
+			unproject2(&points[nr_points++], x, y);
+		} else if (button == GLUT_RIGHT_BUTTON && active_point != -1 && nr_points > 0) {
+			/* Remove point */
+			memmove(points + active_point, points + active_point + 1,
+				sizeof(*points) * (nr_points - active_point + 1));
+			nr_points--;
 		}
 	}
 
 	switch (cur_op) {
-	case PANNING:
+	case PANNING: case MOVING:
 		glutSetCursor(GLUT_CURSOR_CROSSHAIR);
 		break;
 	case SCALING:
@@ -240,6 +254,8 @@ static void motion(int x, int y)
 		pan_y -= dy;
 	} else if (cur_op == SCALING) {
 		scale += dy;
+	} else if (cur_op == MOVING) {
+		unproject2(&points[selected_point], x, y);
 	}
 
 	last_x = x;
