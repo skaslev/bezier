@@ -70,7 +70,7 @@ void bezier_bernstein(struct vector2 *res, const struct vector2 *pts, int nr_pts
 {
 	int i;
 
-	*res = (struct vector2) {};
+	*res = (struct vector2) { 0.0f, 0.0f };
 	for (i = 0; i < nr_pts; i++) {
 		struct vector2 pt = pts[i];
 		vector2_mul(&pt, bernstein(nr_pts - 1, i, t));

@@ -129,7 +129,7 @@ static void display()
 	glColor3f(0.0f, 1.0f, 0.0f);
 	glBegin(GL_LINE_STRIP);
 	for (i = 0; i <= slices; i++) {
-		struct vector2 pt = {};
+		struct vector2 pt = { 0.0f, 0.0f };
 		if (use_de_casteljau)
 			bezier(&pt, points, nr_points, (float) i / slices);
 		else
