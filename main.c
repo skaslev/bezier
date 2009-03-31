@@ -1,6 +1,7 @@
 #include <math.h>
 #include <time.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -25,6 +26,7 @@ static float scale = DEFAULT_SCALE;
 static int slices = DEFAULT_SLICES;
 static int selected_point = -1;
 static int use_de_casteljau = 1;
+static int render_control_polygon = 1;
 
 #define POINT_SIZE		10
 #define POINTS_NAME		1000
@@ -49,7 +51,20 @@ static void unproject2(struct vector2 *res, float x, float y)
 	res->y = pt_y;
 }
 
-static void frame()
+static void gl_printf(void *font, const char *format, ...)
+{
+	char str[256], *p;
+	va_list args;
+
+	va_start(args, format);
+	vsnprintf(str, ARRAY_SIZE(str), format, args);
+	va_end(args);
+
+	for (p = str; *p; p++)
+		glutBitmapCharacter(font, *p);
+}
+
+static void draw_frame()
 {
 	/* Draw the x axis */
 	glColor3f(1.0f, 0.0f, 0.0f);
@@ -69,18 +84,18 @@ static void frame()
 static void display()
 {
 	static clock_t ticks;
-	static int nframes;
+	static int nr_frames, fps;
 	clock_t now;
 	int i;
 
 	/* Calculate frame rate */
-	nframes++;
+	nr_frames++;
 	now = clock();
 	if (now - ticks >= CLOCKS_PER_SEC) {
-		printf("\r%dfps", nframes);
+		fps = nr_frames;
 		fflush(stdout);
 		ticks = now;
-		nframes = 0;
+		nr_frames = 0;
 	}
 
 	/* Start rendering */
@@ -90,6 +105,15 @@ static void display()
 	glLoadIdentity();
 	glTranslatef(pan_x, pan_y, 0.0f);
 	glScalef(scale, scale, 1.0f);
+
+	/* Render control polygon */
+	if (render_control_polygon) {
+		glBegin(GL_LINE_STRIP);
+		glColor3f(0.0f, 0.0f, 1.0f);
+		for (i = 0; i < nr_points; i++)
+			glVertex2f(points[i].x, points[i].y);
+		glEnd();
+	}
 
 	/* Render control points */
 	glPointSize(POINT_SIZE);
@@ -115,7 +139,15 @@ static void display()
 	}
 	glEnd();
 
-	frame();
+	draw_frame();
+
+	/* Render fps */
+	glPushMatrix();
+	glLoadIdentity();
+	glColor3f(1.0, 1.0f, 1.0f);
+	glRasterPos2f(0.925f, 0.975f);
+	gl_printf(GLUT_BITMAP_HELVETICA_18, "%d fps", fps);
+	glPopMatrix();
 
 	glutSwapBuffers();
 	glutPostRedisplay();
@@ -215,6 +247,9 @@ static void keyboard(unsigned char key, int x, int y)
 		else
 			printf("Switched to Bernstein polynomials\n");
 		break;
+	case 'p':
+		render_control_polygon = !render_control_polygon;
+		break;
 	}
 }
 
@@ -283,7 +318,7 @@ int main(int argc, char **argv)
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_MULTISAMPLE);
 	glutInitWindowSize(width, height);
-	glutCreateWindow("CAGD");
+	glutCreateWindow("curves");
 
 	glutReshapeFunc(reshape);
 	glutDisplayFunc(display);

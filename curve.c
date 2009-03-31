@@ -15,7 +15,6 @@ void bezier(struct vector2 *res, const struct vector2 *pts, int nr_pts, float t)
 
 	last = alloca(sizeof(*last) * nr_pts);
 	curr = alloca(sizeof(*curr) * nr_pts);
-
 	memcpy(last, pts, sizeof(*last) * nr_pts);
 	for (i = 0; i < nr_pts - 1; i++) {
 		for (j = 0; j < nr_pts - i - 1; j++)
