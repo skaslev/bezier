@@ -8,6 +8,7 @@
 #include <GL/glut.h>
 
 #include "vector2.h"
+#include "curve.h"
 #include "util.h"
 
 #define DEFAULT_PAN_X		0.5f
@@ -30,21 +31,6 @@ static int selected_point = -1;
 
 static struct vector2 points[MAX_POINTS];
 static int nr_points = 0;
-
-static void bezier(struct vector2 *res, const struct vector2 *pts, int nr_pts, float t)
-{
-	int i, j;
-	struct vector2 buf[nr_pts], buf2[nr_pts];
-	struct vector2 *last = buf, *curr = buf2;
-
-	memcpy(last, pts, sizeof(*last) * nr_pts);
-	for (i = 0; i < nr_pts - 1; i++) {
-		for (j = 0; j < nr_pts - i - 1; j++)
-			vector2_lerp(&curr[j], &last[j], &last[j+1], t);
-		SWAP(struct vector2 *, last, curr);
-	}
-	*res = last[0];
-}
 
 static void unproject2(struct vector2 *res, float x, float y)
 {

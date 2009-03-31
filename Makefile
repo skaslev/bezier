@@ -12,9 +12,9 @@ LIBS = -lm
 
 PROGRAMS = bezier
 
-LIB_H = 
-LIB_OBJS = 
-LIB_FILE = libcurve.a
+LIB_H = vector2.h curve.h util.h
+LIB_OBJS = curve.o
+LIB_FILE = libcagd.a
 
 LIBS += $(LIB_FILE)
 
@@ -33,7 +33,7 @@ all: $(PROGRAMS)
 bezier: main.o $(LIBS)
 	$(QUIET_LINK)$(CC) $(LDFLAGS) -o $@ $< $(LIBS) -lGL -lglut
 
-# geometry.o: $(LIB_H)
+curve.o: $(LIB_H)
 main.o: $(LIB_H)
 
 $(LIB_FILE): $(LIB_OBJS)
