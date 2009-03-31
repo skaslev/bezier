@@ -70,9 +70,10 @@ static void display()
 {
 	static clock_t ticks;
 	static int nframes;
-	static clock_t now;
+	clock_t now;
 	int i;
 
+	/* Calculate frame rate */
 	nframes++;
 	now = clock();
 	if (now - ticks >= CLOCKS_PER_SEC) {
@@ -82,6 +83,7 @@ static void display()
 		nframes = 0;
 	}
 
+	/* Start rendering */
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glMatrixMode(GL_MODELVIEW);
@@ -89,6 +91,7 @@ static void display()
 	glTranslatef(pan_x, pan_y, 0.0f);
 	glScalef(scale, scale, 1.0f);
 
+	/* Render control points */
 	glPointSize(POINT_SIZE);
 	for (i = 0; i < nr_points; i++) {
 		glColor3f(1.0f, 1.0f, 1.0f);
@@ -99,6 +102,7 @@ static void display()
 		glPopName();
 	}
 
+	/* Render the curve itself */
 	glColor3f(0.0f, 1.0f, 0.0f);
 	glBegin(GL_LINE_STRIP);
 	for (i = 0; i <= slices; i++) {
@@ -129,6 +133,7 @@ static void reshape(int w, int h)
 	glEnable(GL_LINE_SMOOTH);
 	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
+	/* Set viewport and projection matrices */
 	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -196,12 +201,12 @@ static void keyboard(unsigned char key, int x, int y)
 	case '-': case '_':
 		if (slices != 1)
 			slices >>= 1;
-		printf("Using %d slices\n", slices);
+		printf("Rendering %d slices\n", slices);
 		break;
 	case '=': case '+':
 		if (slices < (1 << 15))
 			slices <<= 1;
-		printf("Using %d slices\n", slices);
+		printf("Rendering %d slices\n", slices);
 		break;
 	case 'c':
 		use_de_casteljau = !use_de_casteljau;
