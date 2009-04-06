@@ -64,7 +64,7 @@ static void gl_printf(void *font, const char *format, ...)
 		glutBitmapCharacter(font, *p);
 }
 
-static void draw_frame()
+static void draw_frame(void)
 {
 	/* Draw the x axis */
 	glColor3f(1.0f, 0.0f, 0.0f);
@@ -81,7 +81,7 @@ static void draw_frame()
 	glEnd();
 }
 
-static void display()
+static void display(void)
 {
 	static clock_t ticks;
 	static int nr_frames, fps;
