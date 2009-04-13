@@ -317,7 +317,7 @@ int main(int argc, char **argv)
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_MULTISAMPLE);
 	glutInitWindowSize(width, height);
-	glutCreateWindow("curves");
+	glutCreateWindow("bezier");
 
 	glutReshapeFunc(reshape);
 	glutDisplayFunc(display);

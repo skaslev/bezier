@@ -53,7 +53,8 @@ static inline float vector2_dist(const struct vector2 *a,
 }
 
 static inline void vector2_lerp(struct vector2 *r,
-				const struct vector2 *a, const struct vector2 *b, float t)
+				const struct vector2 *a,
+				const struct vector2 *b, float t)
 {
 	r->x = t * a->x + (1.0f - t) * b->x;
 	r->y = t * a->y + (1.0f - t) * b->y;
