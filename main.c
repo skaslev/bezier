@@ -131,7 +131,7 @@ static void display(void)
 	for (i = 0; i <= slices; i++) {
 		struct vector2 pt = { 0.0f, 0.0f };
 		if (use_de_casteljau)
-			bezier(&pt, points, nr_points, (float) i / slices);
+			bezier_casteljau(&pt, points, nr_points, (float) i / slices);
 		else
 			bezier_bernstein(&pt, points, nr_points, (float) i / slices);
 		glVertex2f(pt.x, pt.y);

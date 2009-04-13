@@ -5,7 +5,8 @@
 #include "util.h"
 #include "curve.h"
 
-void bezier(struct vector2 *res, const struct vector2 *pts, int nr_pts, float t)
+void bezier_casteljau(struct vector2 *res,
+		      const struct vector2 *pts, int nr_pts, float t)
 {
 	int i, j;
 	struct vector2 *last, *curr;
@@ -66,7 +67,8 @@ static inline float bernstein(int n, int i, float t)
 	return binomial(n, i) * powi(t, i) * powi(1.0f - t, n - i);
 }
 
-void bezier_bernstein(struct vector2 *res, const struct vector2 *pts, int nr_pts, float t)
+void bezier_bernstein(struct vector2 *res,
+		      const struct vector2 *pts, int nr_pts, float t)
 {
 	int i;
 
