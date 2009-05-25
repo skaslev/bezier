@@ -14,7 +14,7 @@ PROGRAMS = bezier
 
 LIB_H = vector2.h curve.h util.h
 LIB_OBJS = curve.o
-LIB_FILE = libcagd.a
+LIB_FILE = libcurve.a
 
 LIBS += $(LIB_FILE)
 

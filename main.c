@@ -254,6 +254,13 @@ static void keyboard(unsigned char key, int x, int y)
 
 static void mouse(int button, int state, int x, int y)
 {
+	static const int cursor[] = {
+		[NONE]    = GLUT_CURSOR_RIGHT_ARROW,
+		[PANNING] = GLUT_CURSOR_CROSSHAIR,
+		[SCALING] = GLUT_CURSOR_UP_DOWN,
+		[MOVING]  = GLUT_CURSOR_CROSSHAIR
+	};
+
 	cur_op = NONE;
 	if ((glutGetModifiers() & GLUT_ACTIVE_ALT) && state == GLUT_DOWN) {
 		if (button == GLUT_LEFT_BUTTON)
@@ -277,18 +284,7 @@ static void mouse(int button, int state, int x, int y)
 		}
 	}
 
-	switch (cur_op) {
-	case PANNING: case MOVING:
-		glutSetCursor(GLUT_CURSOR_CROSSHAIR);
-		break;
-	case SCALING:
-		glutSetCursor(GLUT_CURSOR_UP_DOWN);
-		break;
-	case NONE:
-	default:
-		glutSetCursor(GLUT_CURSOR_RIGHT_ARROW);
-		break;
-	}
+	glutSetCursor(cursor[cur_op]);
 
 	last_x = x;
 	last_y = y;
