@@ -3,7 +3,12 @@ CFLAGS = -O2 -finline-functions -g
 CFLAGS += -Wall -Winline
 LDFLAGS += -g
 AR = ar
-LIBS = -lm
+LIBS = -lm -lGL -lGLU -lglut
+
+#
+# For cygwin, uncomment the next one
+#
+# LIBS = -lm -lopengl32 -lglu32 -lglut32
 
 #
 # For debugging, uncomment the next one
@@ -15,8 +20,6 @@ PROGRAMS = bezier
 LIB_H = vector2.h curve.h util.h
 LIB_OBJS = curve.o
 LIB_FILE = libcurve.a
-
-LIBS += $(LIB_FILE)
 
 #
 # Pretty print
@@ -30,8 +33,8 @@ QUIET_LINK    = $(Q:@=@echo    '     LINK     '$@;)
 
 all: $(PROGRAMS)
 
-bezier: main.o $(LIBS)
-	$(QUIET_LINK)$(CC) $(LDFLAGS) -o $@ $< $(LIBS) -lGL -lglut
+bezier: main.o  $(LIB_FILE)
+	$(QUIET_LINK)$(CC) $(LDFLAGS) -o $@ $< $(LIB_FILE) $(LIBS)
 
 curve.o: $(LIB_H)
 main.o: $(LIB_H)
