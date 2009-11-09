@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -O2 -finline-functions -g
-CFLAGS += -Wall -Winline
+CFLAGS += -ansi -pedantic -Wall -Winline
 LDFLAGS += -g
 AR = ar
 LIBS = -lm -lGL -lGLU -lglut
@@ -17,7 +17,7 @@ LIBS = -lm -lGL -lGLU -lglut
 
 PROGRAMS = bezier
 
-LIB_H = vector2.h curve.h util.h
+LIB_H = vec2.h curve.h util.h
 LIB_OBJS = curve.o
 LIB_FILE = libcurve.a
 

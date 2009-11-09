@@ -4,11 +4,13 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-
+#ifdef _WIN32
+#define NOMINMAX
+#include <windows.h>
+#endif
 #include <GL/gl.h>
 #include <GL/glut.h>
-
-#include "vector2.h"
+#include "vec2.h"
 #include "curve.h"
 #include "util.h"
 
@@ -32,10 +34,10 @@ static int render_control_polygon = 1;
 #define POINTS_NAME		1000
 #define MAX_POINTS		64
 
-static struct vector2 points[MAX_POINTS];
+static struct vec2 points[MAX_POINTS];
 static int nr_points = 0;
 
-static void unproject2(struct vector2 *res, float x, float y)
+static void unproject2(struct vec2 *res, float x, float y)
 {
 	GLdouble pt_x, pt_y, pt_z;
 	GLdouble model[16];
@@ -53,11 +55,11 @@ static void unproject2(struct vector2 *res, float x, float y)
 
 static void gl_printf(void *font, const char *format, ...)
 {
-	char str[256], *p;
+	char str[512], *p;
 	va_list args;
 
 	va_start(args, format);
-	vsnprintf(str, ARRAY_SIZE(str), format, args);
+	vsprintf(str, format, args);
 	va_end(args);
 
 	for (p = str; *p; p++)
@@ -129,7 +131,7 @@ static void display(void)
 	glColor3f(0.0f, 1.0f, 0.0f);
 	glBegin(GL_LINE_STRIP);
 	for (i = 0; i <= slices; i++) {
-		struct vector2 pt = { 0.0f, 0.0f };
+		struct vec2 pt = { 0.0f, 0.0f };
 		if (use_de_casteljau)
 			bezier_casteljau(&pt, points, nr_points, (float) i / slices);
 		else
@@ -158,7 +160,6 @@ static void reshape(int w, int h)
 	height = h;
 
 	/* Set nice antialiasing settings */
-	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_POINT_SMOOTH);
 	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
 	glEnable(GL_LINE_SMOOTH);
@@ -206,7 +207,7 @@ static int check_hits(int x, int y)
 		GLuint nr_names = *ptr++;
 		ptr++;	/* zmin */
 		ptr++;	/* zmax */
-		for (j = 0; j < nr_names; j++) {
+		for (j = 0; j < (int) nr_names; j++) {
 			GLuint name = *ptr++;
 			int idx = name - POINTS_NAME;
 			if (idx >= 0 && idx < nr_points)
@@ -255,10 +256,10 @@ static void keyboard(unsigned char key, int x, int y)
 static void mouse(int button, int state, int x, int y)
 {
 	static const int cursor[] = {
-		[NONE]    = GLUT_CURSOR_RIGHT_ARROW,
-		[PANNING] = GLUT_CURSOR_CROSSHAIR,
-		[SCALING] = GLUT_CURSOR_UP_DOWN,
-		[MOVING]  = GLUT_CURSOR_CROSSHAIR
+		GLUT_CURSOR_RIGHT_ARROW,	/* NONE */
+		GLUT_CURSOR_CROSSHAIR,		/* PANNING */
+		GLUT_CURSOR_UP_DOWN,		/* SCALING */
+		GLUT_CURSOR_CROSSHAIR		/* MOVING */
 	};
 
 	cur_op = NONE;
@@ -311,7 +312,7 @@ static void motion(int x, int y)
 int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_MULTISAMPLE);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowSize(width, height);
 	glutCreateWindow("bezier");
 

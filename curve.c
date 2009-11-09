@@ -1,15 +1,18 @@
+#ifdef _MSC_VER
+/* Visual C++ doesn't have alloca.h */
+#include <malloc.h>
+#else
 #include <alloca.h>
+#endif
 #include <string.h>
-
-#include "vector2.h"
+#include "vec2.h"
 #include "util.h"
 #include "curve.h"
 
-void bezier_casteljau(struct vector2 *res,
-		      const struct vector2 *pts, int nr_pts, float t)
+void bezier_casteljau(struct vec2 *res, const struct vec2 *pts, int nr_pts, float t)
 {
 	int i, j;
-	struct vector2 *last, *curr;
+	struct vec2 *last, *curr;
 
 	if (!nr_pts)
 		return;
@@ -19,8 +22,8 @@ void bezier_casteljau(struct vector2 *res,
 	memcpy(last, pts, sizeof(*last) * nr_pts);
 	for (i = 0; i < nr_pts - 1; i++) {
 		for (j = 0; j < nr_pts - i - 1; j++)
-			vector2_lerp(&curr[j], &last[j], &last[j+1], t);
-		SWAP(struct vector2 *, last, curr);
+			vec2_lerp(&curr[j], &last[j], &last[j+1], t);
+		SWAP(struct vec2 *, last, curr);
 	}
 	*res = last[0];
 }
@@ -62,20 +65,18 @@ static float powi(float f, int i)
 	return res;
 }
 
-static inline float bernstein(int n, int i, float t)
+static float bernstein(int n, int i, float t)
 {
 	return binomial(n, i) * powi(t, i) * powi(1.0f - t, n - i);
 }
 
-void bezier_bernstein(struct vector2 *res,
-		      const struct vector2 *pts, int nr_pts, float t)
+void bezier_bernstein(struct vec2 *res, const struct vec2 *pts, int nr_pts, float t)
 {
 	int i;
 
-	*res = (struct vector2) { 0.0f, 0.0f };
+	vec2_set(res, 0.0f, 0.0f);
 	for (i = 0; i < nr_pts; i++) {
-		struct vector2 pt = pts[i];
-		vector2_mul(&pt, bernstein(nr_pts - 1, i, t));
-		vector2_add(res, res, &pt);
+		float f = bernstein(nr_pts - 1, i, t);
+		vec2_mad(res, f, &pts[i]);
 	}
 }
