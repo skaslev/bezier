@@ -4,6 +4,11 @@ CFLAGS += -ansi -pedantic -Wall -Winline
 AR = ar
 LIBS = -lm -lGL -lGLU -lglut
 
+ifeq ($(shell uname),Darwin)
+	LIBS = -lm -framework OpenGL -framework GLUT
+	LDFLAGS += -static-libgcc
+endif
+
 ifeq ($(shell uname -o),Cygwin)
 	LIBS = -lm -lopengl32 -lglu32 -lglut32
 	LDFLAGS += -static-libgcc
