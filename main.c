@@ -222,9 +222,8 @@ static int check_hits(int x, int y)
 
 static void keyboard(unsigned char key, int x, int y)
 {
-	enum { ESC = 27, CTRL_Q = 17 };
 	switch (key) {
-	case ESC: case CTRL_Q:
+	case 27: case 17:	/* Esc or Ctrl-Q */
 		exit(0);
 		break;
 	case 'r':
