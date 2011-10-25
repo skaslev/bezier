@@ -1,19 +1,19 @@
 This is a school project for Bezier curve editor.
 
 Demo control:
-Esc, Ctrl-Q			Exit
-Left mouse button		Move control point
-Middle mouse button		Add control point
-Right mouse button		Remove control point
-R				Reset camera
-C				Toggle de Casteljau/Bernstein algorithm
-P				Render control polygon
-+/=				Increase the slices rendered
--/_				Decrease the slices rendered
+Esc, Ctrl-Q				Exit
+Left click				Move control point
+Middle click or Ctrl-Right click	Add control point
+Right click				Remove control point
+R					Reset camera
+C					Toggle de Casteljau/Bernstein algorithm
+P					Render control polygon
++/=					Increase the slices rendered
+-/_					Decrease the slices rendered
 
 Camera control:
-Alt-Left mouse button		Pan camera
-Alt-Right mouse button		Zoom camera
+Alt-Left click				Pan camera
+Alt-Right click				Zoom camera
 
 Homepage: http://github.com/skaslev/bezier/
 Author: Slavomir Kaslev <slavomir.kaslev@gmail.com>
