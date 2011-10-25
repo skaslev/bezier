@@ -6,9 +6,7 @@ LIBS = -lm -lGL -lGLU -lglut
 
 ifeq ($(shell uname),Darwin)
 	LIBS = -lm -framework OpenGL -framework GLUT
-endif
-
-ifeq ($(shell uname -o),Cygwin)
+else ifeq ($(shell uname -o),Cygwin)
 	LIBS = -lm -lopengl32 -lglu32 -lglut32
 	LDFLAGS += -static-libgcc
 endif
