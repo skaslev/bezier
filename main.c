@@ -276,7 +276,7 @@ static void mouse(int button, int state, int x, int y)
 			/* Moving point */
 			selected_point = active_point;
 			cur_op = MOVING;
-		} else if ((button == GLUT_MIDDLE_BUTTON || (glutGetModifiers() & GLUT_ACTIVE_CTRL))
+		} else if ((button == GLUT_MIDDLE_BUTTON || glutGetModifiers())
 				&& active_point == -1 && nr_points < MAX_POINTS) {
 			/* Add point */
 			unproject2(&points[nr_points++], x, y);
